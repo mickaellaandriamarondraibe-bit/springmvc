@@ -1,0 +1,4 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Tue May 12 10:42:33 EAT 2026
+@default-central-https\://repo.maven.apache.org/maven2/.lastUpdated=1778571753847
+https\://repo.maven.apache.org/maven2/.error=Could not transfer artifact org.mariadb.jdbc\:mariadb-java-client\:pom\:3.4.1 from/to central (https\://repo.maven.apache.org/maven2)\: transfer failed for https\://repo.maven.apache.org/maven2/org/mariadb/jdbc/mariadb-java-client/3.4.1/mariadb-java-client-3.4.1.pom
