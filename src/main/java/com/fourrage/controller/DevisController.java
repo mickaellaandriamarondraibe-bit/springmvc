@@ -1,5 +1,6 @@
 package com.fourrage.controller;
 
+import com.fourrage.DTO.DevisDTO;
 import com.fourrage.model.Demande;
 import com.fourrage.model.DemandeStatus;
 import com.fourrage.model.Devis;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,28 +86,29 @@ public class DevisController {
 
     @PostMapping("/devisDemande")
     public String submitDevis(
-            @RequestParam("observation") String observation,
-            @RequestParam("libelle") List<String> libelles,
-            @RequestParam("qte") List<Integer> qtes,
-            @RequestParam("prixUnitaire") List<Double> prixUnitaires,
-            @RequestParam("typeId") Long typeId,
-            @RequestParam("demandeId") Long demandeId,
-            @RequestParam(value = "statusId", required = false) Long statusId,
-            Model model
+          @ModelAttribute DevisDTO devisDTO,
+          Model model
     ) {
-        Optional<Demande> demandeOpt = demandeRepository.findById(demandeId);
+        if (devisDTO.getDemandeId() == null || devisDTO.getTypeId() == null) {
+            model.addAttribute("message", "Demande et type de devis sont obligatoires.");
+            prepareDevisFormModel(model, devisDTO.getDemandeId());
+            return "devisDemande";
+        }
+
+        Optional<Demande> demandeOpt = demandeRepository.findById(devisDTO.getDemandeId());
+        Long typeId = devisDTO.getTypeId();
 
         if (demandeOpt.isEmpty()) {
             model.addAttribute("message", "Demande introuvable.");
-            prepareDevisFormModel(model, demandeId);
+            prepareDevisFormModel(model, devisDTO.getDemandeId());
             return "devisDemande";
         }
 
         Demande demande = demandeOpt.get();
         boolean forageDejaCree = devisRepository.existsByDemandeAndTypeId(demande, 2L);
-        if (Long.valueOf(2L).equals(typeId) && forageDejaCree) {
+        if (Long.valueOf(2L).equals(devisDTO.getTypeId()) && forageDejaCree) {
             model.addAttribute("message", "Un devis Forage existe deja pour cette demande.");
-            prepareDevisFormModel(model, demandeId);
+            prepareDevisFormModel(model, devisDTO.getDemandeId());
             return "devisDemande";
         }
 
@@ -113,32 +116,38 @@ public class DevisController {
         Optional<TypeDevis> typeDevisOpt = typeDevisRepository.findById(typeId);
         if (typeDevisOpt.isEmpty()) {
             model.addAttribute("message", "Type de devis introuvable.");
-            prepareDevisFormModel(model, demandeId);
+            prepareDevisFormModel(model, devisDTO.getDemandeId());
             return "devisDemande";
         }
         TypeDevis typeDevis = typeDevisOpt.get();
 
         Devis devis = new Devis();
-        devis.setObservation(observation);
+        devis.setObservation(devisDTO.getObservation());
         devis.setDateCreation(java.time.LocalDateTime.now());
         devis.setDemande(demande);
         devis.setType(typeDevis);
         Devis savedDevis = devisRepository.save(devis);
 
-        int taille = Math.min(libelles.size(), Math.min(qtes.size(), prixUnitaires.size()));
+        if (devisDTO.getLibelles() == null || devisDTO.getQtes() == null || devisDTO.getPrixUnitaires() == null) {
+            model.addAttribute("message", "Les lignes du devis sont invalides.");
+            prepareDevisFormModel(model, devisDTO.getDemandeId());
+            return "devisDemande";
+        }
+
+        int taille = Math.min(devisDTO.getLibelles().size(), Math.min(devisDTO.getQtes().size(), devisDTO.getPrixUnitaires().size()));
         List<DevisDetail> details = new ArrayList<>();
         for (int i = 0; i < taille; i++) {
             DevisDetail detail = new DevisDetail();
-            detail.setLibelle(libelles.get(i));
-            detail.setQte(qtes.get(i));
-            detail.setPrixUnitaire(prixUnitaires.get(i));
+            detail.setLibelle(devisDTO.getLibelles().get(i));
+            detail.setQte(devisDTO.getQtes().get(i));
+            detail.setPrixUnitaire(devisDTO.getPrixUnitaires().get(i));
             detail.setDevis(savedDevis);
             details.add(detail);
         }
         devisDetailRepository.saveAll(details);
 
-        if (statusId != null) {
-            Status status = statusById.get(statusId);
+        if (devisDTO.getStatusId() != null) {
+            Status status = statusById.get(devisDTO.getStatusId());
             if (status != null) {
                 DemandeStatus demandeStatus = new DemandeStatus();
                 demandeStatus.setDemande(demande);
@@ -149,7 +158,7 @@ public class DevisController {
         }
 
         model.addAttribute("message", "Devis soumis avec succès !");
-        prepareDevisFormModel(model, demandeId);
+        prepareDevisFormModel(model, devisDTO.getDemandeId());
 
         return "devisDemande";
     }
@@ -188,7 +197,12 @@ public class DevisController {
     }
 
     @PostMapping("/devisDemande/details")
-    public String showDevisDetails(@RequestParam("demandeId") Long demandeId, Model model) {
+    public String showDevisDetails(@RequestParam(value = "demandeId", required = false) Long demandeId, Model model) {
+        if (demandeId == null) {
+            model.addAttribute("message", "Veuillez selectionner une demande.");
+            prepareDevisFormModel(model, null);
+            return "devisDemande";
+        }
         Optional<Demande> demandeOpt = demandeRepository.findById(demandeId);
         if (demandeOpt.isEmpty()) {
             model.addAttribute("message", "Demande introuvable.");
