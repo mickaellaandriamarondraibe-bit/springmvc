@@ -56,14 +56,18 @@ public class DevisController {
     private StatusRepository statusRepository;
 
     @PostConstruct
-    private void initStatusCache() {
-        Map<Long, Status> cache = new LinkedHashMap<>();
-        for (Status status : statusRepository.findAll()) {
-            cache.put(status.getId(), status);
-        }
-        statusById = cache;
+    private void initStatusMap() {
+        statusById = loadStatusMap();
     }
-    
+
+    private Map<Long, Status> loadStatusMap() {
+        Map<Long, Status> statusMap = new LinkedHashMap<>();
+        for (Status status : statusRepository.findAll()) {
+            statusMap.put(status.getId(), status);
+        }
+        return statusMap;
+    }
+        
     @GetMapping("/devisDemande")
     public String showForm(@RequestParam(value = "demandeId", required = false) Long demandeId, Model model) {
         prepareDevisFormModel(model, demandeId);
@@ -148,6 +152,7 @@ public class DevisController {
 
         if (devisDTO.getStatusId() != null) {
             Status status = statusById.get(devisDTO.getStatusId());
+
             if (status != null) {
                 DemandeStatus demandeStatus = new DemandeStatus();
                 demandeStatus.setDemande(demande);
@@ -179,6 +184,7 @@ public class DevisController {
 
         return "devisDemande";
     }
+
 
     private void prepareDevisFormModel(Model model, Long demandeId) {
         model.addAttribute("demandeId", demandeId);
@@ -231,6 +237,18 @@ public class DevisController {
         model.addAttribute("prixUnitaires", prixUnitaires);
         return "expoterPDF";
     }
+
+    @PostMapping("/validationDevis")
+    public String validationDevis(@RequestParam("demandeId") Long demandeId, Model model) {
+        Optional<Demande> demandeOpt = demandeRepository.findById(demandeId);
+
+        if (demandeOpt.isPresent() && demandeOpt.get().getId() == 3L) {
+        
+    }
+        return "devisDemande";
+    }
+
+
 
     @GetMapping("/devisDemande/list")
     public String listDevis(Model model) {

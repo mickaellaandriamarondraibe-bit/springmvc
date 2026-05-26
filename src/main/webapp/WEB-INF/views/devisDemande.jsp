@@ -13,7 +13,7 @@
     <p style="color: #b00020;">${message}</p>
 </c:if>
 
-<form action="${pageContext.request.contextPath}/devisDemande" method="post" id="formulaire">
+<form action="${pageContext.request.contextPath}/demandeStatus/ajout" method="post" id="formulaire">
     <div>
         <label for="demandeId">Demande :</label>
         <select id="demandeId" name="demandeId" required>
@@ -36,7 +36,7 @@
         <label for="statusId">Statut :</label>
         <select id="statusId" name="statusId" required>
             <option value="">Selectionnez un statut</option>
-            <c:forEach var="entry" items="${statusMap}">
+            <c:forEach var="entry" items="${status}">
                 <option value="${entry.key}">${entry.value.libelle}</option>
             </c:forEach>
         </select>
@@ -107,7 +107,12 @@ async function refreshTypeOptionsByDemande() {
 
 function ajouterLigne() {
     countChamps += 1;
-
+    const supprimerLigneBtn = document.createElement('button');
+    supprimerLigneBtn.type = 'button';
+    supprimerLigneBtn.textContent = 'Supprimer';
+    supprimerLigneBtn.style.marginLeft = '8px';
+    supprimerLigneBtn.addEventListener('click', function () {        container.removeChild(bloc);
+    });
     const bloc = document.createElement('div');
     bloc.style.marginTop = '8px';
 
@@ -147,8 +152,15 @@ function ajouterLigne() {
     bloc.appendChild(qte);
     bloc.appendChild(labelPrixUnitaire);
     bloc.appendChild(prixUnitaire);
+    bloc.appendChild(supprimerLigneBtn);
 
     container.appendChild(bloc);
+}
+function supprimerLignes() {
+    while (container.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+    countChamps = 0;
 }
 
 bouton.addEventListener('click', ajouterLigne);

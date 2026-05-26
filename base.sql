@@ -42,6 +42,7 @@ CREATE TABLE demande (
     commune_id BIGINT NOT NULL,
     adresse VARCHAR(255),
     client_id BIGINT NOT NULL,
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_demande_commune
         FOREIGN KEY (commune_id) REFERENCES commune(id),
@@ -85,17 +86,34 @@ CREATE TABLE demande_status (
     demande_id BIGINT NOT NULL,
     status_id BIGINT NOT NULL,
     date_changement DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
+    observation VARCHAR(255),
+    duree_travail INT,
     CONSTRAINT fk_demande_status_demande
         FOREIGN KEY (demande_id) REFERENCES demande(id),
-
     CONSTRAINT fk_demande_status_status
         FOREIGN KEY (status_id) REFERENCES status(id)
 );
 
 
+CREATE TABLE parametre (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    libelle VARCHAR(255) NOT NULL,
+    duree_minimum INT NOT NULL,
+    couleur VARCHAR(255) NOT NULL,
+    status_id_depart BIGINT NOT NULL,
+    status_id_arrivee BIGINT NOT NULL,
+    CONSTRAINT fk_parametre_status_depart
+        FOREIGN KEY (status_id_depart) REFERENCES status(id),
+);
 
 
+INSERT INTO parametre (libelle, duree_minimum, couleur, status_id_depart, status_id_arrivee) VALUES
+('Soumission', 2, '#3498DB', 1, 2),
+('Vérification', 6, '#F1C40F', 2, 3),
+('Validation', 12, '#2ECC71', 3, 4),
+('Rejet', 1, '#E74C3C', 2, 5),
+('Correction', 4, '#9B59B6', 5, 2),
+('Finalisation', 3, '#1ABC9C', 4, 6);
 
 -- =========================
 -- 1. REGIONS
@@ -152,4 +170,5 @@ INSERT INTO status (libelle) VALUES
 -- =========================
 INSERT INTO type_devis (libelle) VALUES
 ('Etude'),
+    Parametre parametre = new Parametre();
 ('Forage');

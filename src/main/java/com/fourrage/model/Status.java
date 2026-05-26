@@ -21,4 +21,7 @@ public class Status {
 
     @Column(name = "libelle", nullable = false)
     private String libelle;
+
+
+    
 }

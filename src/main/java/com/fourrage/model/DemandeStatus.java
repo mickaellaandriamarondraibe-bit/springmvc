@@ -32,7 +32,11 @@ public class DemandeStatus {
     @Column(name = "date_changement", nullable = false)
     private java.time.LocalDateTime dateChangement;
     
-    
+    @Column(name = "observation")
+    private String observation;
+
+    @Column(name = "duree_travail")
+    private Integer dureeTravail;
 
 
 }

@@ -85,6 +85,8 @@ CREATE TABLE demande_status (
     demande_id BIGINT NOT NULL,
     status_id BIGINT NOT NULL,
     date_changement DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    observation VARCHAR(255),
+    duree_travail INT,
 
     CONSTRAINT fk_demande_status_demande
         FOREIGN KEY (demande_id) REFERENCES demande(id),
