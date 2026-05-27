@@ -21,6 +21,7 @@ com/fourrage/model/Status.class
 com/fourrage/model/Client.class
 com/fourrage/repository/ParametreStatus.class
 com/fourrage/repository/CommuneRepository.class
+com/fourrage/controller/DemandeStatusControler$DashboardRow.class
 com/fourrage/model/District.class
 com/fourrage/model/Region.class
 com/fourrage/controller/DevisController.class

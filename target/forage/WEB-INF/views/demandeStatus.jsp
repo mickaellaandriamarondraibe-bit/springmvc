@@ -5,6 +5,13 @@
 <head>
     <meta charset="UTF-8" />
     <title>Creation Demande Status</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f5f5f5; }
+        .badge { padding: 4px 8px; border-radius: 999px; font-size: 12px; background: #fff; border: 1px solid #ccc; }
+    </style>
 </head>
 <body>
 <h1>Formulaire Demande Status</h1>
@@ -54,6 +61,40 @@
     <input type="hidden" id="demandeIdDetails" name="demandeId" value="${demandeId}" />
     <button type="submit">Voir details devis</button>
 </form>
+
+<h2>Tableau de bord des demandes</h2>
+<form action="${pageContext.request.contextPath}/demandeStatus/dashboard" method="get">
+    <label for="maintenant">Date de référence :</label>
+    <input type="datetime-local" id="maintenant" name="maintenant" />
+    <button type="submit">Actualiser</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID Demande</th>
+            <th>Statut actuel</th>
+            <th>Date dernier changement</th>
+            <th>Durée (heures)</th>
+            <th>Seuil minimum (heures)</th>
+            <th>Message</th>
+            <th>Couleur</th>
+        </tr>
+    </thead>
+    <tbody>
+        <c:forEach var="row" items="${rows}">
+            <tr style="background-color: ${row.couleur};">
+                <td>${row.demandeId}</td>
+                <td><span class="badge">${row.statutActuel}</span></td>
+                <td>${row.dateDernierChangement}</td>
+                <td>${row.dureeHeures}</td>
+                <td>${row.seuilHeures}</td>
+                <td>${row.message}</td>
+                <td>${row.couleur}</td>
+            </tr>
+        </c:forEach>
+    </tbody>
+</table>
 
 </body>
 </html>

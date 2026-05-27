@@ -4,6 +4,7 @@ import java.lang.StackWalker.Option;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,34 @@ public class DemandeStatusControler {
         model.addAttribute("demandes", demandes);
         model.addAttribute("status", statuses);
         return "demandeStatus";
+    }
+
+    @GetMapping("/demandeStatus/tracabilite")
+    public String tracabiliteDemandes(Model model) {
+        List<DemandeStatus> traces = demandeStatusRepository.findAllWithStatusAndDemande();
+        Map<Long, String> statusColors = new HashMap<>();
+        parametreStatusRepository.findAll()
+                .forEach(p -> statusColors.putIfAbsent(p.getStatusIdDepart(), normalizeColor(p.getCouleur())));
+        model.addAttribute("demandeStatus", traces);
+        model.addAttribute("statusColors", statusColors);
+        return "tracabiliteDemandes";
+    }
+
+    private String normalizeColor(String color) {
+        if (color == null || color.isBlank()) {
+            return "#F3F4F6";
+        }
+        String c = color.trim();
+        String u = c.toUpperCase();
+        if (u.equals("ROUGE") || u.equals("RED")) return "#E53935";
+        if (u.equals("VERT") || u.equals("GREEN")) return "#43A047";
+        if (u.equals("ORANGE")) return "#FB8C00";
+        if (u.equals("JAUNE") || u.equals("YELLOW")) return "#FDD835";
+        if (u.equals("BLEU") || u.equals("BLUE")) return "#1E88E5";
+        if (u.equals("GRIS") || u.equals("GRAY") || u.equals("GREY")) return "#B0BEC5";
+        if (c.matches("^[0-9A-Fa-f]{3}$") || c.matches("^[0-9A-Fa-f]{6}$")) return "#" + c;
+        if (c.matches("^#[0-9A-Fa-f]{3}$") || c.matches("^#[0-9A-Fa-f]{6}$")) return c;
+        return c;
     }
 
     @GetMapping("/demandeStatus/dashboard")
