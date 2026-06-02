@@ -32,7 +32,6 @@
     </div>
     <div>
         <label for="dateChangement">date :</label>
-
             <input type="datetime-local" id="dateChangement" name="dateChangement" value="${date}" required />
 
     </div>
@@ -75,8 +74,8 @@
             <th>ID Demande</th>
             <th>Statut actuel</th>
             <th>Date dernier changement</th>
-            <th>Durée (heures)</th>
-            <th>Seuil minimum (heures)</th>
+            <th>Durée (minutes)</th>
+            <th>Seuil minimum (minutes)</th>
             <th>Message</th>
             <th>Couleur</th>
         </tr>
@@ -87,8 +86,8 @@
                 <td>${row.demandeId}</td>
                 <td><span class="badge">${row.statutActuel}</span></td>
                 <td>${row.dateDernierChangement}</td>
-                <td>${row.dureeHeures}</td>
-                <td>${row.seuilHeures}</td>
+                <td>${row.dureeMinutes}</td>
+                <td>${row.seuilMinutes}</td>
                 <td>${row.message}</td>
                 <td>${row.couleur}</td>
             </tr>

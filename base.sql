@@ -103,18 +103,18 @@ CREATE TABLE parametre (
     status_id_depart BIGINT NOT NULL,
     status_id_arrivee BIGINT NOT NULL,
     CONSTRAINT fk_parametre_status_depart
-        FOREIGN KEY (status_id_depart) REFERENCES status(id),
+        FOREIGN KEY (status_id_depart) REFERENCES status(id)
 );
 
+DELETE FROM parametre;
 
 INSERT INTO parametre (libelle, duree_minimum, couleur, status_id_depart, status_id_arrivee) VALUES
-('Soumission', 2, '#3498DB', 1, 2),
-('Vérification', 6, '#F1C40F', 2, 3),
-('Validation', 12, '#2ECC71', 3, 4),
-('Rejet', 1, '#E74C3C', 2, 5),
-('Correction', 4, '#9B59B6', 5, 2),
-('Finalisation', 3, '#1ABC9C', 4, 6);
-
+('Cree -> DEC', 2, '#3498DB', 1, 2),
+('DEC -> DEA', 5, '#F1C40F', 2, 3),
+('DEC -> DER', 60,  '#E74C3C', 2, 4),
+('DEA -> DFC', 720, '#2ECC71', 3, 5),
+('DFC -> DFA', 240, '#9B59B6', 5, 6),
+('DFA -> TT',  180, '#1ABC9C', 6, 9);
 -- =========================
 -- 1. REGIONS
 -- =========================
@@ -170,5 +170,4 @@ INSERT INTO status (libelle) VALUES
 -- =========================
 INSERT INTO type_devis (libelle) VALUES
 ('Etude'),
-    Parametre parametre = new Parametre();
 ('Forage');
