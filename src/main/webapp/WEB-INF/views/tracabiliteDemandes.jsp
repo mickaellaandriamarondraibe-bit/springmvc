@@ -15,6 +15,7 @@
     </style>
 </head>
 <body>
+<%@ include file="includes/header.jsp" %>
 <h1>Liste De Tracabilite Des Demandes</h1>
 
 <div class="actions">

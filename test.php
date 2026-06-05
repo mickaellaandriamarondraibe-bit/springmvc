@@ -9,6 +9,14 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlErr = curl_error($ch);
 curl_close($ch);
 
+if ($response === false) {
+    die("Erreur cURL: " . htmlspecialchars($curlErr));
+}
+
+if ($httpCode !== 200) {
+    die("Erreur API dashboard - HTTP " . (int)$httpCode . "<pre>" . htmlspecialchars($response) . "</pre>");
+}
+
 $rows = json_decode($response, true);
 if (!is_array($rows)) {
     die("Réponse JSON invalide: <pre>" . htmlspecialchars($response) . "</pre>");
@@ -79,4 +87,3 @@ function formatDateFromArray($d): string
   </table>
 </body>
 </html>
-

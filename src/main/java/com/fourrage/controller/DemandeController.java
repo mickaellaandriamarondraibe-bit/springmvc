@@ -1,5 +1,6 @@
 package com.fourrage.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import com.fourrage.DTO.AlerteRetard;
 import com.fourrage.model.Demande;
 import com.fourrage.model.DemandeStatus;
 import com.fourrage.repository.ClientRepository;
@@ -46,6 +48,9 @@ public class DemandeController {
     @Autowired
     private DemandeStatusRepository demandeStatusRepository;
 
+    @Autowired
+    private DemandeStatusControler demandeStatusControler;
+
     @GetMapping("/form")
     public String showDemandeForm(Model model) {
         model.addAttribute("idclient" , clientRepository.findAll()); 
@@ -54,11 +59,6 @@ public class DemandeController {
         return "createDemande";
     }
 
-    @GetMapping("/list")
-    public String listDemandes(Model model) {
-        model.addAttribute("demandes", demandeRepository.findAll());
-        return "listDemande";
-    }
 
     @PostMapping("/submit")
     public String submitDemande(@ModelAttribute("demande") Demande demande) {
@@ -72,6 +72,24 @@ public class DemandeController {
         });
         return "redirect:/demande/list";
     }
+
+    @GetMapping("/list")
+    public String listDemandes(Model model) {
+        List<Demande> demandes = demandeRepository.findAll();
+        Map<Long, List<AlerteRetard>> alertesDemandes = new LinkedHashMap<>();
+        LocalDateTime maintenant = LocalDateTime.now();
+
+        for (Demande demande : demandes) {
+            alertesDemandes.put(
+                    demande.getId(),
+                    demandeStatusControler.getAlertesRetardDemande(demande.getId(), maintenant));
+        }
+
+        model.addAttribute("demandes", demandes);
+        model.addAttribute("alertesDemandes", alertesDemandes);
+        return "listDemande";
+    }
+
     
     @GetMapping(value = "/communes", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody

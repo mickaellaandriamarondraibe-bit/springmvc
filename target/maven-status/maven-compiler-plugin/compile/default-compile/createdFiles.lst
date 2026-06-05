@@ -11,6 +11,7 @@ com/fourrage/repository/StatusRepository.class
 com/fourrage/model/Parametre.class
 com/fourrage/model/Demande.class
 com/fourrage/repository/DevisDetailRepository.class
+com/fourrage/DTO/AlerteRetard.class
 com/fourrage/controller/DemandeController.class
 com/fourrage/repository/ClientRepository.class
 com/fourrage/model/Devis.class
@@ -22,7 +23,6 @@ com/fourrage/model/Client.class
 com/fourrage/repository/ParametreStatus.class
 com/fourrage/repository/CommuneRepository.class
 com/fourrage/model/District.class
-com/fourrage/DTO/DashboardRow.class
 com/fourrage/model/Region.class
 com/fourrage/controller/DevisController.class
 com/fourrage/DTO/DevisDTO.class

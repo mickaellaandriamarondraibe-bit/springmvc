@@ -7,6 +7,7 @@
     <title>Liste des devis</title>
 </head>
 <body>
+<%@ include file="includes/header.jsp" %>
 <h1>Liste des devis</h1>
 
 <table border="1" cellpadding="10" cellspacing="0">

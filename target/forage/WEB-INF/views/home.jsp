@@ -6,9 +6,8 @@
     <title>Forage - Accueil</title>
 </head>
 <body>
+    <%@ include file="includes/header.jsp" %>
     <h1>Projet Forage - Spring MVC</h1>
     <p>La configuration Spring MVC fonctionne.</p>
-    <p><a href="${pageContext.request.contextPath}/demande/form">Creer une demande</a></p>
-    <p><a href="${pageContext.request.contextPath}/demande/list">Voir les demandes</a></p>
 </body>
 </html>

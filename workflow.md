@@ -23,3 +23,8 @@
 
 
 utilise onbleer
+
+
+sudo /opt/lampp/lampp start
+
+pour chaque demande on vas colorier selon son statut 

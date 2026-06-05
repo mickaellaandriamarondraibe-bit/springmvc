@@ -14,6 +14,7 @@
     </style>
 </head>
 <body>
+<%@ include file="includes/header.jsp" %>
 <h1>Formulaire Demande Status</h1>
 
 <c:if test="${not empty message}">
@@ -60,40 +61,6 @@
     <input type="hidden" id="demandeIdDetails" name="demandeId" value="${demandeId}" />
     <button type="submit">Voir details devis</button>
 </form>
-
-<h2>Tableau de bord des demandes</h2>
-<form action="${pageContext.request.contextPath}/demandeStatus/dashboard" method="get">
-    <label for="maintenant">Date de référence :</label>
-    <input type="datetime-local" id="maintenant" name="maintenant" />
-    <button type="submit">Actualiser</button>
-</form>
-
-<table>
-    <thead>
-        <tr>
-            <th>ID Demande</th>
-            <th>Statut actuel</th>
-            <th>Date dernier changement</th>
-            <th>Durée (minutes)</th>
-            <th>Seuil minimum (minutes)</th>
-            <th>Message</th>
-            <th>Couleur</th>
-        </tr>
-    </thead>
-    <tbody>
-        <c:forEach var="row" items="${rows}">
-            <tr style="background-color: ${row.couleur};">
-                <td>${row.demandeId}</td>
-                <td><span class="badge">${row.statutActuel}</span></td>
-                <td>${row.dateDernierChangement}</td>
-                <td>${row.dureeMinutes}</td>
-                <td>${row.seuilMinutes}</td>
-                <td>${row.message}</td>
-                <td>${row.couleur}</td>
-            </tr>
-        </c:forEach>
-    </tbody>
-</table>
 
 </body>
 </html>

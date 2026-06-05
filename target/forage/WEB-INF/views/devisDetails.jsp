@@ -7,6 +7,7 @@
     <title>Details des devis</title>
 </head>
 <body>
+<%@ include file="includes/header.jsp" %>
 <h1>Details des devis</h1>
 
 <c:if test="${not empty message}">

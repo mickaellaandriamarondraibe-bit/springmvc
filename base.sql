@@ -106,15 +106,6 @@ CREATE TABLE parametre (
         FOREIGN KEY (status_id_depart) REFERENCES status(id)
 );
 
-DELETE FROM parametre;
-
-INSERT INTO parametre (libelle, duree_minimum, couleur, status_id_depart, status_id_arrivee) VALUES
-('Cree -> DEC', 2, '#3498DB', 1, 2),
-('DEC -> DEA', 5, '#F1C40F', 2, 3),
-('DEC -> DER', 60,  '#E74C3C', 2, 4),
-('DEA -> DFC', 720, '#2ECC71', 3, 5),
-('DFC -> DFA', 240, '#9B59B6', 5, 6),
-('DFA -> TT',  180, '#1ABC9C', 6, 9);
 -- =========================
 -- 1. REGIONS
 -- =========================
@@ -171,3 +162,16 @@ INSERT INTO status (libelle) VALUES
 INSERT INTO type_devis (libelle) VALUES
 ('Etude'),
 ('Forage');
+
+
+DELETE FROM parametre;
+
+INSERT INTO parametre (libelle, duree_minimum, couleur, status_id_depart, status_id_arrivee) VALUES
+('Cree -> DEC', 2, '#3498DB', 1, 2),
+('DEC -> DEA', 5, '#F1C40F', 2, 3),
+('DEC -> DER', 5,  '#E74C3C', 2, 4),
+('DEA -> DFC',3, '#2ECC71', 3, 5),
+('DFC -> DFA', 7, '#9B59B6', 5, 6),
+('DFC -> DFR', 7, '#34495E', 5, 7),
+('DFA -> TC', 3, '#E67E22', 6, 8),
+('TC -> TT',  3, '#1ABC9C', 8, 9);

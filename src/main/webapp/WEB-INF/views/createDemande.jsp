@@ -7,6 +7,7 @@
     <title>Creer une demande</title>
 </head>
 <body>
+<%@ include file="includes/header.jsp" %>
 <h1>Creer une demande</h1>
 <p id="ajaxError" style="color: #b00020;"></p>
 
