@@ -2,13 +2,23 @@ package com.fourrage.DTO;
 
 public class AlerteRetard {
     private final String libelle;
-    private final String message;
+    private final long minutesEcoulees;
+    private final long limite;
+    private final long difference;
     private final String couleur;
     private final boolean retard;
 
-    public AlerteRetard(String libelle, String message, String couleur, boolean retard) {
+    public AlerteRetard(
+            String libelle,
+            long minutesEcoulees,
+            long limite,
+            long difference,
+            String couleur,
+            boolean retard) {
         this.libelle = libelle;
-        this.message = message;
+        this.minutesEcoulees = minutesEcoulees;
+        this.limite = limite;
+        this.difference = difference;
         this.couleur = couleur;
         this.retard = retard;
     }
@@ -17,8 +27,16 @@ public class AlerteRetard {
         return libelle;
     }
 
-    public String getMessage() {
-        return message;
+    public long getMinutesEcoulees() {
+        return minutesEcoulees;
+    }
+
+    public long getLimite() {
+        return limite;
+    }
+
+    public long getDifference() {
+        return difference;
     }
 
     public String getCouleur() {

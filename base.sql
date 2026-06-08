@@ -167,7 +167,7 @@ INSERT INTO type_devis (libelle) VALUES
 DELETE FROM parametre;
 
 INSERT INTO parametre (libelle, duree_minimum, couleur, status_id_depart, status_id_arrivee) VALUES
-('Cree -> DEC', 2, '#3498DB', 1, 2),
+('Cree -> DEC', 0.1, '#3498DB', 1, 2),
 ('DEC -> DEA', 5, '#F1C40F', 2, 3),
 ('DEC -> DER', 5,  '#E74C3C', 2, 4),
 ('DEA -> DFC',3, '#2ECC71', 3, 5),

@@ -101,7 +101,14 @@
                                 <c:forEach var="alerte" items="${alertes}">
                                     <div class="alert-item" style="border-left-color: ${alerte.couleur};">
                                         <span class="alert-label"><c:out value="${alerte.libelle}" /></span>
-                                        <c:out value="${alerte.message}" />
+                                        <c:choose>
+                                            <c:when test="${alerte.retard}">
+                                                Alerte : délai dépassé de ${alerte.difference} minute(s)
+                                            </c:when>
+                                            <c:otherwise>
+                                                Délai terminé dans ${-alerte.difference} minute(s)
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </c:forEach>
                             </div>

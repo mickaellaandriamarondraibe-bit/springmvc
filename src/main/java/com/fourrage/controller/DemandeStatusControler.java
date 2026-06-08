@@ -1,202 +1,196 @@
 package com.fourrage.controller;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.fourrage.DTO.AlerteRetard;
 import com.fourrage.DTO.DemandeStatusDTO;
+import com.fourrage.DTO.ResultatStatutDTO;
 import com.fourrage.model.Demande;
 import com.fourrage.model.DemandeStatus;
-import com.fourrage.model.Parametre;
-import com.fourrage.model.Status;
-import com.fourrage.repository.DemandeRepository;
-import com.fourrage.repository.DemandeStatusRepository;
-import com.fourrage.repository.ParametreStatus;
-import com.fourrage.repository.StatusRepository;
-import com.fourrage.DTO.AlerteRetard;
+import com.fourrage.service.DemandeStatusService;
 
 @Controller
 public class DemandeStatusControler {
 
-    @Autowired
-    private DemandeStatusRepository demandeStatusRepository;
+    private final DemandeStatusService demandeStatusService;
 
-    @Autowired
-    private DemandeRepository demandeRepository;
-
-    @Autowired
-    private StatusRepository statusRepository;
-
-    @Autowired 
-    private ParametreStatus parametreStatusRepository;
+    public DemandeStatusControler(DemandeStatusService demandeStatusService) {
+        this.demandeStatusService = demandeStatusService;
+    }
 
     @GetMapping("/demandeStatus")
     public String showDemandeStatusForm(Model model) {
-        model.addAttribute("demandes", demandeRepository.findAll());
-        model.addAttribute("status", statusRepository.findAll());
+        model.addAttribute("demandes", demandeStatusService.findAllDemandes());
+        model.addAttribute("status", demandeStatusService.findAllStatus());
         return "demandeStatus";
     }
 
     @GetMapping("/demandeStatus/tracabilite")
     public String listTracabilite(Model model) {
-        List<DemandeStatus> demandeStatus = demandeStatusRepository.findAllWithStatusAndDemande();
-        Map<Long, String> statusColors = new HashMap<>();
-        for (Parametre parametre : parametreStatusRepository.findAll()) {
-            statusColors.put(parametre.getStatusIdArrivee(), parametre.getCouleur());
-        }
-        model.addAttribute("demandeStatus", demandeStatus);
-        model.addAttribute("statusColors", statusColors);
+        model.addAttribute("demandeStatus", demandeStatusService.findAllTracabilite());
+        model.addAttribute("statusColors", demandeStatusService.getStatusColors());
         return "tracabiliteDemandes";
     }
 
     @PostMapping("/demandeStatus/ajout")
-    public String addDemandeStatus(DemandeStatusDTO dto) {
-        Optional<Demande> demandeOpt = demandeRepository.findById(dto.getDemandeId());
-        if (demandeOpt.isEmpty()) {
-            return "redirect:/demandeStatus";
+    public String addDemandeStatus(DemandeStatusDTO dto, RedirectAttributes redirectAttributes) {
+        String erreur = demandeStatusService.ajouter(dto);
+        if (erreur != null) {
+            redirectAttributes.addFlashAttribute("message", erreur);
+            redirectAttributes.addFlashAttribute("demandeId", dto.getDemandeId());
         }
-
-        Optional<Status> statusOpt = statusRepository.findById(dto.getStatusId());
-        if (statusOpt.isEmpty()) {
-            return "redirect:/demandeStatus";
-        }
-
-        LocalDateTime precedent = demandeStatusRepository
-                .findTopByDemandeOrderByIdDesc(demandeOpt.get())
-                .map(DemandeStatus::getDateChangement)
-                .orElse(null);
-
-        DemandeStatus demandeStatus = new DemandeStatus();
-        demandeStatus.setDemande(demandeOpt.get());
-        demandeStatus.setStatus(statusOpt.get());
-        demandeStatus.setObservation(dto.getObservation());
-
-        int dureeTravail = (int) Duration.between(precedent, dto.getDateChangement()).toMinutes();
-
-        demandeStatus.setDureeTravail(dureeTravail);
-        demandeStatus.setDateChangement(dto.getDateChangement());
-        demandeStatusRepository.save(demandeStatus);
-        
         return "redirect:/demandeStatus";
     }
 
-
-
-    public List<AlerteRetard> getAlertesRetardDemande(Long demandeId, LocalDateTime maintenant) {
-        List<AlerteRetard> alertes = new ArrayList<>();
-        Optional<Demande> demandeOpt = demandeRepository.findById(demandeId);
-        if (demandeOpt.isEmpty()) {
-            return alertes;
-        }
-
-        Optional<DemandeStatus> dernierStatusOpt =
-                demandeStatusRepository.findTopByDemandeOrderByIdDesc(demandeOpt.get());
-        if (dernierStatusOpt.isEmpty()) {
-            return alertes;
-        }
-
-        DemandeStatus dernierStatus = dernierStatusOpt.get();
-        long minutesEcoulees = Duration.between(dernierStatus.getDateChangement(), maintenant).toMinutes();
-        if (minutesEcoulees < 0) {
-            minutesEcoulees = 0;
-        }
-
-        List<Parametre> parametres = parametreStatusRepository
-                .findByStatusIdDepartOrderByDureeMinimumAsc(dernierStatus.getStatus().getId());
-
-        if (!parametres.isEmpty()) {
-            Parametre parametre = parametres.get(0);
-            long difference = minutesEcoulees - parametre.getDureeMinimum();
-            boolean retard = difference > 0;
-            String message = retard ? "Alerte : délai dépassé de " + difference + formatMinutes(difference) : "Délai terminé dans " + Math.abs(difference) + formatMinutes(Math.abs(difference));
-            String couleur = retard && parametre.getCouleur() != null && !parametre.getCouleur().isBlank()
-                    ? parametre.getCouleur()
-                    : "#F3F4F6";
-
-            alertes.add(new AlerteRetard(dernierStatus.getStatus().getLibelle(), message, couleur, retard));
-        }
-
-        return alertes;
-    }
-
     @PostMapping("/demandeStatus/modifier-date")
-    @Transactional
     public String modifierDateStatus(
             @RequestParam("demandeStatusId") Long demandeStatusId,
-            @RequestParam("nouvelleDate") LocalDateTime nouvelleDate) {
-        Optional<DemandeStatus> statusAModifierOpt = demandeStatusRepository.findById(demandeStatusId);
-        if (statusAModifierOpt.isEmpty()) {
-            return "redirect:/demande/list";
+            @RequestParam("demandeId") Long demandeId,
+            @RequestParam("nouvelleDate") LocalDateTime nouvelleDate,
+            RedirectAttributes redirectAttributes) {
+        Optional<Long> demandeModifieeId = demandeStatusService.modifierDateStatus(demandeStatusId, nouvelleDate);
+        if (demandeModifieeId.isEmpty()) {
+            redirectAttributes.addFlashAttribute(
+                    "message",
+                    "Date refusée : elle doit être comprise entre les statuts précédent et suivant.");
         }
-
-        DemandeStatus statusAModifier = statusAModifierOpt.get();
-        Demande demande = statusAModifier.getDemande();
-        List<DemandeStatus> historiques = demandeStatusRepository.findByDemandeOrderByIdAsc(demande);
-        Duration decalage = Duration.between(statusAModifier.getDateChangement(), nouvelleDate);
-        boolean appliquerDecalage = false;
-
-        for (DemandeStatus historique : historiques) {
-            if (historique.getId().equals(demandeStatusId)) {
-                appliquerDecalage = true;
-            }
-            if (appliquerDecalage) {
-                historique.setDateChangement(historique.getDateChangement().plus(decalage));
-            }
-        }
-
-        recalculerDureesTravail(historiques);
-        demandeStatusRepository.saveAll(historiques);
-        return "redirect:/demandeStatus/demande?demandeId=" + demande.getId();
-    }
-
-    private void recalculerDureesTravail(List<DemandeStatus> historiques) {
-        for (int index = 0; index < historiques.size(); index++) {
-            int dureeTravail = 0;
-            if (index > 0) {
-                long minutes = Duration.between(
-                        historiques.get(index - 1).getDateChangement(),
-                        historiques.get(index).getDateChangement()).toMinutes();
-                dureeTravail = (int) Math.min(Integer.MAX_VALUE, Math.max(0, minutes));
-            }
-            historiques.get(index).setDureeTravail(dureeTravail);
-        }
-    }
-
-    
-
-    private String formatMinutes(long minutes) {
-        return minutes > 1 ? " minutes" : " minute";
+        return demandeModifieeId
+                .map(id -> "redirect:/demandeStatus/demande?demandeId=" + id)
+                .orElse("redirect:/demandeStatus/demande?demandeId=" + demandeId);
     }
 
     @GetMapping("/demandeStatus/demande")
-    public String detailDemandeStatus(@RequestParam("demandeId") Long demandeId, Model model) {
-        Optional<Demande> demandeOpt = demandeRepository.findById(demandeId);
+    public String detailDemandeStatus(
+            @RequestParam("demandeId") Long demandeId,
+            @RequestParam(value = "dateSimulation", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateSimulation,
+            Model model) {
+        Optional<Demande> demandeOpt = demandeStatusService.findDemande(demandeId);
         if (demandeOpt.isEmpty()) {
             return "redirect:/demande/list";
         }
 
         Demande demande = demandeOpt.get();
-        List<DemandeStatus> historiques = demandeStatusRepository.findByDemandeOrderByIdAsc(demande);
-        List<AlerteRetard> alertes = getAlertesRetardDemande(demandeId, LocalDateTime.now());
-        AlerteRetard alerteActuelle = alertes.isEmpty() ? null : alertes.get(0);
-        Long dernierStatusId = historiques.isEmpty() ? null : historiques.get(historiques.size() - 1).getId();
+        List<DemandeStatus> historiques = demandeStatusService.findHistorique(demande);
+        LocalDateTime dateCalcul = dateSimulation == null ? LocalDateTime.now() : dateSimulation;
+
+        if (dateSimulation != null
+                && !historiques.isEmpty()
+                && dateCalcul.isBefore(historiques.get(historiques.size() - 1).getDateChangement())) {
+            model.addAttribute(
+                    "erreurSimulation",
+                    "La date de simulation doit être postérieure à l'entrée dans le statut actuel.");
+            dateCalcul = LocalDateTime.now();
+            dateSimulation = null;
+        }
+
+        List<AlerteRetard> alertes = demandeStatusService.getAlertesRetardDemande(demandeId, dateCalcul);
 
         model.addAttribute("demande", demande);
-        model.addAttribute("demandeStatus", historiques);
-        model.addAttribute("alerteActuelle", alerteActuelle);
-        model.addAttribute("dernierStatusId", dernierStatusId);
+        model.addAttribute("resultatsHistorique", demandeStatusService.construireResultatsHistorique(historiques));
+        model.addAttribute("alerteActuelle", alertes.isEmpty() ? null : alertes.get(0));
+        model.addAttribute("dateSimulation", dateSimulation);
+        model.addAttribute("dateCalcul", dateCalcul);
+        model.addAttribute(
+                "dernierStatusId",
+                historiques.isEmpty() ? null : historiques.get(historiques.size() - 1).getId());
         return "detailDemandeStatus";
+    }
+
+    @GetMapping(value = "/api/demandeStatus/demande", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiDetailDemandeStatus(
+            @RequestParam("demandeId") Long demandeId,
+            @RequestParam(value = "dateSimulation", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateSimulation) {
+        Optional<Demande> demandeOpt = demandeStatusService.findDemande(demandeId);
+        if (demandeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<DemandeStatus> historiques = demandeStatusService.findHistorique(demandeOpt.get());
+        LocalDateTime dateCalcul = dateSimulation == null ? LocalDateTime.now() : dateSimulation;
+        String erreurSimulation = null;
+
+        if (dateSimulation != null
+                && !historiques.isEmpty()
+                && dateCalcul.isBefore(historiques.get(historiques.size() - 1).getDateChangement())) {
+            erreurSimulation = "La date de simulation doit être postérieure à l'entrée dans le statut actuel.";
+            dateCalcul = LocalDateTime.now();
+            dateSimulation = null;
+        }
+
+        List<AlerteRetard> alertes = demandeStatusService.getAlertesRetardDemande(demandeId, dateCalcul);
+        List<Map<String, Object>> resultats = new ArrayList<>();
+
+        for (ResultatStatutDTO resultat : demandeStatusService.construireResultatsHistorique(historiques)) {
+            Map<String, Object> ligne = new LinkedHashMap<>();
+            ligne.put("demandeStatusId", resultat.getTrace().getId());
+            ligne.put("statut", resultat.getTrace().getStatus().getLibelle());
+            ligne.put("dateChangement", resultat.getTrace().getDateChangement().toString());
+            ligne.put("dureeTravail", resultat.getDureeTravail());
+            ligne.put("limite", resultat.getLimite());
+            ligne.put("difference", resultat.getDifference());
+            ligne.put("couleur", resultat.getCouleur());
+            ligne.put("retard", resultat.isRetard());
+            ligne.put("enCours", resultat.isEnCours());
+            resultats.add(ligne);
+        }
+
+        Map<String, Object> reponse = new LinkedHashMap<>();
+        reponse.put("demandeId", demandeId);
+        reponse.put("dateCalcul", dateCalcul.toString());
+        reponse.put("dateSimulation", dateSimulation == null ? null : dateSimulation.toString());
+        reponse.put("erreurSimulation", erreurSimulation);
+        reponse.put("alerteActuelle", alertes.isEmpty() ? null : creerAlerteApi(alertes.get(0)));
+        reponse.put("resultatsHistorique", resultats);
+        return ResponseEntity.ok(reponse);
+    }
+
+    @PostMapping(value = "/api/demandeStatus/modifier-date", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> apiModifierDateStatus(
+            @RequestParam("demandeStatusId") Long demandeStatusId,
+            @RequestParam("nouvelleDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime nouvelleDate) {
+        Optional<Long> demandeId = demandeStatusService.modifierDateStatus(demandeStatusId, nouvelleDate);
+        Map<String, Object> reponse = new LinkedHashMap<>();
+
+        if (demandeId.isEmpty()) {
+            reponse.put("succes", false);
+            reponse.put("message", "Date refusée : elle doit être comprise entre les statuts précédent et suivant.");
+            return ResponseEntity.badRequest().body(reponse);
+        }
+
+        reponse.put("succes", true);
+        reponse.put("demandeId", demandeId.get());
+        return ResponseEntity.ok(reponse);
+    }
+
+    private Map<String, Object> creerAlerteApi(AlerteRetard alerte) {
+        Map<String, Object> resultat = new LinkedHashMap<>();
+        resultat.put("libelle", alerte.getLibelle());
+        resultat.put("minutesEcoulees", alerte.getMinutesEcoulees());
+        resultat.put("limite", alerte.getLimite());
+        resultat.put("difference", alerte.getDifference());
+        resultat.put("couleur", alerte.getCouleur());
+        resultat.put("retard", alerte.isRetard());
+        return resultat;
     }
 }
